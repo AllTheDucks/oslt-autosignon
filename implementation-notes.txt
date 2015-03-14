@@ -1,0 +1,2 @@
+TODO Enabled/Disabled -- do we still need to allow course forwarding to work if autosignon is disabled?
+

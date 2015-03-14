@@ -1,0 +1,19 @@
+*.class
+
+# Package Files #
+*.war
+*.ear
+
+# IntelliJ IDEA #
+*.iml
+.idea
+
+# Gradle #
+.gradle
+build
+
+# Glovr #
+.glovr
+
+# jshack-test-web root dir #
+/test-web/src/test/data/hacks
