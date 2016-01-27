@@ -5,7 +5,7 @@ This Authentication provider is meant to replace the old (Legacy Authentication)
 by Blackboard Global Services, and made available on Github.
 
 This Auth Provider was contributed to the community by Swinburne University, and is now maintained by
-All the Ducks Pty Ltd.
+[All the Ducks](https://www.alltheducks.com/) Pty Ltd.
 
 Downloading
 -------

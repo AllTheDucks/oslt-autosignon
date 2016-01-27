@@ -111,7 +111,7 @@
 
                 </bbNG:dataElement>
                 <bbNG:dataElement label="${extraParametersLabel}"
-                                  isRequired="false" labelFor="applicationId">
+                                  isRequired="false" labelFor="extraParameters">
                     <stripes:text id="extraParameters"
                                   name="settings.extraParameters"
                                   placeholder="courseId, extraInfo, etc"></stripes:text>
@@ -130,27 +130,27 @@
             </bbNG:step>
             <bbNG:step title="${requestParamStepTitle}">
                 <bbNG:dataElement label="${macRequestParamLabel}"
-                                  isRequired="true" labelFor="applicationId">
+                                  isRequired="true" labelFor="macParamName">
                     <stripes:text id="macParamName"
                                   name="settings.macParamName"></stripes:text>
                 </bbNG:dataElement>
                 <bbNG:dataElement label="${userIdRequestParamLabel}"
-                                  isRequired="true" labelFor="applicationId">
+                                  isRequired="true" labelFor="userIdParamName">
                     <stripes:text id="userIdParamName"
                                   name="settings.userIdParamName"></stripes:text>
                 </bbNG:dataElement>
                 <bbNG:dataElement label="${timestampRequestParamLabel}"
-                                  isRequired="true" labelFor="applicationId">
+                                  isRequired="true" labelFor="timestampParamName">
                     <stripes:text id="timestampParamName"
                                   name="settings.timestampParamName"></stripes:text>
                 </bbNG:dataElement>
                 <bbNG:dataElement label="${forwardRequestParamLabel}"
-                                  isRequired="true" labelFor="applicationId">
+                                  isRequired="true" labelFor="forwardParamName">
                     <stripes:text id="forwardParamName"
                                   name="settings.forwardParamName"></stripes:text>
                 </bbNG:dataElement>
                 <bbNG:dataElement label="${courseIdRequestParamLabel}"
-                                  isRequired="true" labelFor="applicationId">
+                                  isRequired="true" labelFor="courseIdParamName">
                     <stripes:text id="courseIdParamName"
                                   name="settings.courseIdParamName"></stripes:text>
                 </bbNG:dataElement>
