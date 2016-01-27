@@ -36,8 +36,6 @@
 <fmt:message var="pageTitle" key="autosignon.providerSettingsPage.title"/>
 <fmt:message var="loginSourceStepTitle"
              key="autosignon.providerSettingsPage.loginSourceStepTitle"/>
-<fmt:message var="sourceHostUrlLabel"
-             key="autosignon.providerSettingsPage.sourceHostUrlLabel"/>
 <fmt:message var="debugModeLabel"
              key="autosignon.providerSettingsPage.debugModeLabel"/>
 
@@ -84,13 +82,6 @@
             >
         <bbNG:dataCollection>
             <bbNG:step title="${loginSourceStepTitle}">
-                <bbNG:dataElement label="${sourceHostUrlLabel}"
-                                  isRequired="false" labelFor="applicationId">
-                    <stripes:text id="sourceHostUrl"
-                                  name="settings.sourceHostUrl"
-                                  placeholder="https://portal.myinstitution.edu/"
-                                  style="width:40em"></stripes:text>
-                </bbNG:dataElement>
                 <bbNG:dataElement label="${debugModeLabel}"
                                   isRequired="false" labelFor="debugMode">
                     <stripes:checkbox id="debugMode"
