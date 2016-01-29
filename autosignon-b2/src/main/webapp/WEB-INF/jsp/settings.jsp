@@ -34,8 +34,8 @@
 
 <!DOCTYPE html>
 <fmt:message var="pageTitle" key="autosignon.providerSettingsPage.title"/>
-<fmt:message var="loginSourceStepTitle"
-             key="autosignon.providerSettingsPage.loginSourceStepTitle"/>
+<fmt:message var="otherSettingsStepTitle"
+             key="autosignon.providerSettingsPage.otherSettingsStepTitle"/>
 <fmt:message var="debugModeLabel"
              key="autosignon.providerSettingsPage.debugModeLabel"/>
 
@@ -81,13 +81,6 @@
             beanclass="org.oscelot.bb.auth.autosignon.stripes.SettingsAction"
             >
         <bbNG:dataCollection>
-            <bbNG:step title="${loginSourceStepTitle}">
-                <bbNG:dataElement label="${debugModeLabel}"
-                                  isRequired="false" labelFor="debugMode">
-                    <stripes:checkbox id="debugMode"
-                                  name="settings.debug"></stripes:checkbox>
-                </bbNG:dataElement>
-            </bbNG:step>
             <bbNG:step title="${securitySettingsStepTitle}">
                 <bbNG:dataElement label="${macAlgorithmLabel}"
                                   isRequired="true" labelFor="algorithm">
@@ -146,6 +139,13 @@
                                   name="settings.courseIdParamName"></stripes:text>
                 </bbNG:dataElement>
 
+            </bbNG:step>
+            <bbNG:step title="${otherSettingsStepTitle}">
+                <bbNG:dataElement label="${debugModeLabel}"
+                                  isRequired="false" labelFor="debugMode">
+                    <stripes:checkbox id="debugMode"
+                                      name="settings.debug"></stripes:checkbox>
+                </bbNG:dataElement>
             </bbNG:step>
             <bbNG:step title="${connectionDetailsTitle}">
                 <div style="background-color: beige; border: 1px solid goldenrod; border-radius: .25em; padding: .5em;">
