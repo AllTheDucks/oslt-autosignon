@@ -20,9 +20,12 @@
  * SOFTWARE.
  */
 
-// Apply the java plugin to add support for Java
+
 apply plugin: 'java'
 apply plugin: 'war'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
 
 repositories {
   mavenCentral()
@@ -69,7 +72,7 @@ ant.taskdef(name: 'b2deploy', classname: 'org.oscelot.ant.B2DeployTask', classpa
 task deployb2(dependsOn: 'war') << {
   println "Deploying \"" + war.archivePath + "\""
   ant.b2deploy(localfilepath: war.archivePath,
-      host: 'bbdev-vm-fh2014:8080',
+      host: 'localhost:9876',
       clean: 'true',
       courseorgavailable:'true'
   )

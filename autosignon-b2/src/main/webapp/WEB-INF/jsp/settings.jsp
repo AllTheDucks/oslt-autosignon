@@ -34,10 +34,8 @@
 
 <!DOCTYPE html>
 <fmt:message var="pageTitle" key="autosignon.providerSettingsPage.title"/>
-<fmt:message var="loginSourceStepTitle"
-             key="autosignon.providerSettingsPage.loginSourceStepTitle"/>
-<fmt:message var="sourceHostUrlLabel"
-             key="autosignon.providerSettingsPage.sourceHostUrlLabel"/>
+<fmt:message var="otherSettingsStepTitle"
+             key="autosignon.providerSettingsPage.otherSettingsStepTitle"/>
 <fmt:message var="debugModeLabel"
              key="autosignon.providerSettingsPage.debugModeLabel"/>
 
@@ -83,20 +81,6 @@
             beanclass="org.oscelot.bb.auth.autosignon.stripes.SettingsAction"
             >
         <bbNG:dataCollection>
-            <bbNG:step title="${loginSourceStepTitle}">
-                <bbNG:dataElement label="${sourceHostUrlLabel}"
-                                  isRequired="false" labelFor="applicationId">
-                    <stripes:text id="sourceHostUrl"
-                                  name="settings.sourceHostUrl"
-                                  placeholder="https://portal.myinstitution.edu/"
-                                  style="width:40em"></stripes:text>
-                </bbNG:dataElement>
-                <bbNG:dataElement label="${debugModeLabel}"
-                                  isRequired="false" labelFor="debugMode">
-                    <stripes:checkbox id="debugMode"
-                                  name="settings.debug"></stripes:checkbox>
-                </bbNG:dataElement>
-            </bbNG:step>
             <bbNG:step title="${securitySettingsStepTitle}">
                 <bbNG:dataElement label="${macAlgorithmLabel}"
                                   isRequired="true" labelFor="algorithm">
@@ -111,7 +95,7 @@
 
                 </bbNG:dataElement>
                 <bbNG:dataElement label="${extraParametersLabel}"
-                                  isRequired="false" labelFor="applicationId">
+                                  isRequired="false" labelFor="extraParameters">
                     <stripes:text id="extraParameters"
                                   name="settings.extraParameters"
                                   placeholder="courseId, extraInfo, etc"></stripes:text>
@@ -130,31 +114,38 @@
             </bbNG:step>
             <bbNG:step title="${requestParamStepTitle}">
                 <bbNG:dataElement label="${macRequestParamLabel}"
-                                  isRequired="true" labelFor="applicationId">
+                                  isRequired="true" labelFor="macParamName">
                     <stripes:text id="macParamName"
                                   name="settings.macParamName"></stripes:text>
                 </bbNG:dataElement>
                 <bbNG:dataElement label="${userIdRequestParamLabel}"
-                                  isRequired="true" labelFor="applicationId">
+                                  isRequired="true" labelFor="userIdParamName">
                     <stripes:text id="userIdParamName"
                                   name="settings.userIdParamName"></stripes:text>
                 </bbNG:dataElement>
                 <bbNG:dataElement label="${timestampRequestParamLabel}"
-                                  isRequired="true" labelFor="applicationId">
+                                  isRequired="true" labelFor="timestampParamName">
                     <stripes:text id="timestampParamName"
                                   name="settings.timestampParamName"></stripes:text>
                 </bbNG:dataElement>
                 <bbNG:dataElement label="${forwardRequestParamLabel}"
-                                  isRequired="true" labelFor="applicationId">
+                                  isRequired="true" labelFor="forwardParamName">
                     <stripes:text id="forwardParamName"
                                   name="settings.forwardParamName"></stripes:text>
                 </bbNG:dataElement>
                 <bbNG:dataElement label="${courseIdRequestParamLabel}"
-                                  isRequired="true" labelFor="applicationId">
+                                  isRequired="true" labelFor="courseIdParamName">
                     <stripes:text id="courseIdParamName"
                                   name="settings.courseIdParamName"></stripes:text>
                 </bbNG:dataElement>
 
+            </bbNG:step>
+            <bbNG:step title="${otherSettingsStepTitle}">
+                <bbNG:dataElement label="${debugModeLabel}"
+                                  isRequired="false" labelFor="debugMode">
+                    <stripes:checkbox id="debugMode"
+                                      name="settings.debug"></stripes:checkbox>
+                </bbNG:dataElement>
             </bbNG:step>
             <bbNG:step title="${connectionDetailsTitle}">
                 <div style="background-color: beige; border: 1px solid goldenrod; border-radius: .25em; padding: .5em;">
