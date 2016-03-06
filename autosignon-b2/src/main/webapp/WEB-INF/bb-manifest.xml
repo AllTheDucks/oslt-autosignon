@@ -34,7 +34,7 @@
         <default-locale value="en_US" />
         <webapp-type value="javaext" />
 
-        <version value="2.0" />
+        <version value="2.0.1" />
         <requires>
             <bbversion value="9.1.82223.0" />
         </requires>
