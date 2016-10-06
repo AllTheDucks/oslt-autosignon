@@ -60,8 +60,8 @@ dependencies {
   compile project(':autosignon-api')
   compile files('../lib/bb-stripes-utils-1.0.jar')
   compile 'net.sourceforge.stripes:stripes:1.5.7'
-  compile 'org.springframework:spring-beans:3.2.5.RELEASE'
-  compile 'org.springframework:spring-web:3.2.5.RELEASE'
+  compile 'org.springframework:spring-beans:4.3.0.RELEASE'
+  compile 'org.springframework:spring-web:4.3.0.RELEASE'
 
   testCompile 'org.mockito:mockito-all:1.9.5'
   testCompile "junit:junit:4.11"
