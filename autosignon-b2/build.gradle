@@ -69,13 +69,15 @@ dependencies {
 
 ant.taskdef(name: 'b2deploy', classname: 'org.oscelot.ant.B2DeployTask', classpath: configurations.b2deploy.asPath)
 
-task deployb2(dependsOn: 'war') << {
-  println "Deploying \"" + war.archivePath + "\""
-  ant.b2deploy(localfilepath: war.archivePath,
-      host: 'localhost:9876',
-      clean: 'true',
-      courseorgavailable:'true'
-  )
+task deployb2(dependsOn: 'war') {
+  doLast {
+    println "Deploying \"" + war.archivePath + "\""
+    ant.b2deploy(localfilepath: war.archivePath,
+            host: 'localhost:9876',
+            clean: 'true',
+            courseorgavailable: 'true'
+    )
+  }
 }
 
 String getB2Version() {
