@@ -31,4 +31,4 @@ Building the Autosignon Auth Provider B2
 
 Downloading
 -------
-You can download the latest binary package of this Building Block from the [AutoSignon oscelot page](http://projects.oscelot.org/gf/project/autosignon/).
+You can download the latest binary package of this Building Block from the [Github Releases page for this project](https://github.com/AllTheDucks/oslt-autosignon/releases).
