@@ -30,6 +30,7 @@ import blackboard.platform.authentication.AuthenticationManager;
 import blackboard.platform.authentication.AuthenticationProviderManager;
 import blackboard.platform.authentication.SessionManager;
 import blackboard.platform.authentication.log.AuthenticationLogger;
+import blackboard.platform.ultra.UltraUiManager;
 
 /**
  * Created with IntelliJ IDEA.
@@ -54,6 +55,10 @@ public class BlackboardLoaderPersisterFactory {
 
   public AuthenticationProviderManager getAuthenticationProviderManager() {
     return AuthenticationProviderManager.Factory.getInstance();
+  }
+
+  public UltraUiManager getUltraUiManager() {
+    return UltraUiManager.Factory.getInstance();
   }
 
   public AuthenticationLogger getAuthenticationLogger() {

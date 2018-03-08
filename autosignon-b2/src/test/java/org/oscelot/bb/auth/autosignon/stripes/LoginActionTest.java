@@ -11,6 +11,7 @@ import blackboard.platform.authentication.AuthenticationManager;
 import blackboard.platform.authentication.AuthenticationProvider;
 import blackboard.platform.authentication.SessionManager;
 import blackboard.platform.authentication.log.AuthenticationLogger;
+import blackboard.platform.ultra.UltraUiManager;
 import net.sourceforge.stripes.action.ForwardResolution;
 import net.sourceforge.stripes.action.RedirectResolution;
 import org.junit.Before;
@@ -21,6 +22,7 @@ import org.oscelot.bb.auth.autosignon.api.SecurityUtil;
 import org.oscelot.bb.auth.autosignon.provider.AutosignonProviderSettings;
 import org.oscelot.bb.auth.autosignon.service.AuthProviderService;
 import org.oscelot.bb.auth.autosignon.service.AutosignonSettingsService;
+import org.oscelot.bb.auth.autosignon.service.UltraUiService;
 import org.oscelot.bb.stripes.BlackboardActionBeanContext;
 
 import javax.servlet.http.HttpServletRequest;
@@ -51,6 +53,7 @@ public class LoginActionTest {
   AuthProviderService apService;
   AuthenticationManager authMgr;
   SessionManager sessionManager;
+  UltraUiService ultraUiService;
   LoginAction loginAction;
   SecurityUtil securityUtil;
   AutosignonSettingsService settingsService;
@@ -70,6 +73,7 @@ public class LoginActionTest {
     authMgr = mock(AuthenticationManager.class);
     sessionManager = mock(SessionManager.class);
     settingsService = mock(AutosignonSettingsService.class);
+    ultraUiService = mock(UltraUiService.class);
 
     context = mock(BlackboardActionBeanContext.class);
     when(context.getRequest()).thenReturn(request);
@@ -85,6 +89,7 @@ public class LoginActionTest {
     loginAction.injectAuthProviderService(apService);
     loginAction.injectAuthenticationManager(authMgr);
     loginAction.injectSessionManager(sessionManager);
+    loginAction.injectUltraUiService(ultraUiService);
   }
 
   @Test
@@ -100,8 +105,8 @@ public class LoginActionTest {
     when(securityUtil.calculateMac(anyMap(), anyString(), any(MacAlgorithm.class))).thenReturn("validMACstring");
     when(securityUtil.timestampIsValid(anyLong(), anyInt())).thenReturn(true);
 
-    Course course = new Course();
-    course.setId(new DummyId(Course.DATA_TYPE, "_1_1"));
+    Course course = mock(Course.class);
+    when(course.getId()).thenReturn(new DummyId(Course.DATA_TYPE, "_1_1"));
     User user = new User();
     user.setStudentId("wfuller");
     when(courseDbLoader.loadByCourseId("ITB101")).thenReturn(course);
@@ -119,6 +124,76 @@ public class LoginActionTest {
     verify(securityUtil, atLeastOnce()).timestampIsValid(timestamp, 2500);
   }
 
+
+  @Test
+  public void performLogin_withValidRequestAndUltraEnabledAndUltraCourse_redirectsToCourse() throws PersistenceException, InvalidKeyException, NoSuchAlgorithmException {
+    String apId = "_1234_1";
+    long timestamp = new Date().getTime() - 2000;
+    Map<String, String> simpleParams = mapifyStrings("userId", "wfuller", "courseId", "ITB101", "timestamp", Long.toString(timestamp), "auth", "validMACstring");
+    Map<String, String[]> reqParams = useRequestParameters(simpleParams);
+    AutosignonProviderSettings settings = useSettings(apId, MacAlgorithm.HMAC_SHA1, "mysecret", "", 2500);
+    useRequestParamNames(settings, "auth", "userId", "timestamp", "forward", "courseId");
+    AuthenticationProvider ap = useAuthenticationProvider("_1234_1");
+
+    when(securityUtil.calculateMac(anyMap(), anyString(), any(MacAlgorithm.class))).thenReturn("validMACstring");
+    when(securityUtil.timestampIsValid(anyLong(), anyInt())).thenReturn(true);
+
+    Course course = mock(Course.class);
+    when(course.getId()).thenReturn(new DummyId(Course.DATA_TYPE, "_1_1"));
+    when(course.getUltraStatus()).thenReturn(Course.UltraStatus.ULTRA_DECIDED);
+    User user = new User();
+    user.setStudentId("wfuller");
+    when(courseDbLoader.loadByCourseId("ITB101")).thenReturn(course);
+    when(apService.userCanAccessCourse(any(Course.class), any(User.class))).thenReturn(true);
+    when(authMgr.findUser(eq("wfuller"), any(AuthenticationProvider.class))).thenReturn(user);
+    when(ultraUiService.isUltraUiEnabled()).thenReturn(true);
+
+    loginAction.setApId(apId);
+    RedirectResolution resolution = (RedirectResolution) loginAction.performLogin();
+
+    assertTrue("Path should equal \"/ultra/courses/_1_1/outline\"", resolution.getPath().equals("/ultra/courses/_1_1/outline"));
+    verify(courseDbLoader, atLeastOnce()).loadByCourseId("ITB101");
+    verify(authMgr, atLeastOnce()).findUser(eq("wfuller"), any(AuthenticationProvider.class));
+
+    verify(securityUtil, atLeastOnce()).calculateMac(getRequiredParams(settings, simpleParams), "mysecret", MacAlgorithm.HMAC_SHA1);
+    verify(securityUtil, atLeastOnce()).timestampIsValid(timestamp, 2500);
+  }
+
+  @Test
+  public void performLogin_withValidRequestAndUltraEnabledAndNotUltraCourse_redirectsToCourse() throws PersistenceException, InvalidKeyException, NoSuchAlgorithmException {
+    String apId = "_1234_1";
+    long timestamp = new Date().getTime() - 2000;
+    Map<String, String> simpleParams = mapifyStrings("userId", "wfuller", "courseId", "ITB101", "timestamp", Long.toString(timestamp), "auth", "validMACstring");
+    Map<String, String[]> reqParams = useRequestParameters(simpleParams);
+    AutosignonProviderSettings settings = useSettings(apId, MacAlgorithm.HMAC_SHA1, "mysecret", "", 2500);
+    useRequestParamNames(settings, "auth", "userId", "timestamp", "forward", "courseId");
+    AuthenticationProvider ap = useAuthenticationProvider("_1234_1");
+
+    when(securityUtil.calculateMac(anyMap(), anyString(), any(MacAlgorithm.class))).thenReturn("validMACstring");
+    when(securityUtil.timestampIsValid(anyLong(), anyInt())).thenReturn(true);
+
+    Course course = mock(Course.class);
+    when(course.getId()).thenReturn(new DummyId(Course.DATA_TYPE, "_1_1"));
+    when(course.getUltraStatus()).thenReturn(Course.UltraStatus.CLASSIC_DECIDED);
+    User user = new User();
+    user.setStudentId("wfuller");
+    when(courseDbLoader.loadByCourseId("ITB101")).thenReturn(course);
+    when(apService.userCanAccessCourse(any(Course.class), any(User.class))).thenReturn(true);
+    when(authMgr.findUser(eq("wfuller"), any(AuthenticationProvider.class))).thenReturn(user);
+    when(ultraUiService.isUltraUiEnabled()).thenReturn(true);
+
+    loginAction.setApId(apId);
+    RedirectResolution resolution = (RedirectResolution) loginAction.performLogin();
+
+    assertTrue("Path should equal \"/ultra/courses/_1_1/cl/outline\"", resolution.getPath().equals("/ultra/courses/_1_1/cl/outline"));
+    verify(courseDbLoader, atLeastOnce()).loadByCourseId("ITB101");
+    verify(authMgr, atLeastOnce()).findUser(eq("wfuller"), any(AuthenticationProvider.class));
+
+    verify(securityUtil, atLeastOnce()).calculateMac(getRequiredParams(settings, simpleParams), "mysecret", MacAlgorithm.HMAC_SHA1);
+    verify(securityUtil, atLeastOnce()).timestampIsValid(timestamp, 2500);
+  }
+
+
   @Test
   public void performValidLogin_withMD5Hash_redirectsToCourse() throws PersistenceException, InvalidKeyException, NoSuchAlgorithmException {
     String apId = "_1234_1";
@@ -132,8 +207,8 @@ public class LoginActionTest {
     when(securityUtil.calculateMac(anyMap(), anyString(), any(MacAlgorithm.class))).thenReturn("validMACstring");
     when(securityUtil.timestampIsValid(anyLong(), anyInt())).thenReturn(true);
 
-    Course course = new Course();
-    course.setId(new DummyId(Course.DATA_TYPE, "_1_1"));
+    Course course = mock(Course.class);
+    when(course.getId()).thenReturn(new DummyId(Course.DATA_TYPE, "_1_1"));
     User user = new User();
     user.setStudentId("wfuller");
     when(courseDbLoader.loadByCourseId("ITB101")).thenReturn(course);
@@ -174,8 +249,8 @@ public class LoginActionTest {
     when(securityUtil.calculateMac(anyMap(), anyString(), any(MacAlgorithm.class))).thenReturn("validMACstring");
     when(securityUtil.timestampIsValid(anyLong(), anyInt())).thenReturn(true);
 
-    Course course = new Course();
-    course.setId(new DummyId(Course.DATA_TYPE, "_1_1"));
+    Course course = mock(Course.class);
+    when(course.getId()).thenReturn(new DummyId(Course.DATA_TYPE, "_1_1"));
     User user = new User();
     user.setStudentId("wfuller");
     when(courseDbLoader.loadByCourseId("ITB101")).thenThrow(new KeyNotFoundException("Course Doesn't exist"));
@@ -207,8 +282,8 @@ public class LoginActionTest {
     when(securityUtil.calculateMac(anyMap(), anyString(), any(MacAlgorithm.class))).thenReturn("validMACstring");
     when(securityUtil.timestampIsValid(anyLong(), anyInt())).thenReturn(true);
 
-    Course course = new Course();
-    course.setId(new DummyId(Course.DATA_TYPE, "_1_1"));
+    Course course = mock(Course.class);
+    when(course.getId()).thenReturn(new DummyId(Course.DATA_TYPE, "_1_1"));
     User user = new User();
     user.setStudentId("wfuller");
     when(courseDbLoader.loadByCourseId("ITB101")).thenThrow(new KeyNotFoundException("Course Doesn't exist"));
@@ -310,8 +385,8 @@ public class LoginActionTest {
     when(securityUtil.calculateMac(anyMap(), anyString(), any(MacAlgorithm.class))).thenReturn("validMACstring");
     when(securityUtil.timestampIsValid(anyLong(), anyInt())).thenReturn(true);
 
-    Course course = new Course();
-    course.setId(new DummyId(Course.DATA_TYPE, "_1_1"));
+    Course course = mock(Course.class);
+    when(course.getId()).thenReturn(new DummyId(Course.DATA_TYPE, "_1_1"));
     User user = new User();
     user.setStudentId("wfuller");
     when(courseDbLoader.loadByCourseId("ITB101")).thenReturn(course);
@@ -413,8 +488,8 @@ public class LoginActionTest {
     when(securityUtil.calculateMac(anyMap(), anyString(), any(MacAlgorithm.class))).thenReturn("validMACstring");
     when(securityUtil.timestampIsValid(anyLong(), anyInt())).thenReturn(true);
 
-    Course course = new Course();
-    course.setId(new DummyId(Course.DATA_TYPE, "_1_1"));
+    Course course = mock(Course.class);
+    when(course.getId()).thenReturn(new DummyId(Course.DATA_TYPE, "_1_1"));
     User user = new User();
     user.setStudentId("wfuller");
     when(courseDbLoader.loadByCourseId("ITB101")).thenReturn(course);
@@ -445,8 +520,8 @@ public class LoginActionTest {
     when(securityUtil.calculateMac(anyMap(), anyString(), any(MacAlgorithm.class))).thenReturn("validMACstring");
     when(securityUtil.timestampIsValid(anyLong(), anyInt())).thenReturn(true);
 
-    Course course = new Course();
-    course.setId(new DummyId(Course.DATA_TYPE, "_1_1"));
+    Course course = mock(Course.class);
+    when(course.getId()).thenReturn(new DummyId(Course.DATA_TYPE, "_1_1"));
     User user = new User();
     user.setStudentId("wfuller");
     when(courseDbLoader.loadByCourseId("ITB101")).thenReturn(course);
@@ -477,8 +552,8 @@ public class LoginActionTest {
     when(securityUtil.calculateMac(anyMap(), anyString(), any(MacAlgorithm.class))).thenReturn("validMACstring");
     when(securityUtil.timestampIsValid(anyLong(), anyInt())).thenReturn(true);
 
-    Course course = new Course();
-    course.setId(new DummyId(Course.DATA_TYPE, "_1_1"));
+    Course course = mock(Course.class);
+    when(course.getId()).thenReturn(new DummyId(Course.DATA_TYPE, "_1_1"));
     when(courseDbLoader.loadByCourseId("ITB101")).thenReturn(course);
     when(apService.userCanAccessCourse(any(Course.class), any(User.class))).thenReturn(true);
     when(authMgr.findUser(eq("wfuller"), any(AuthenticationProvider.class))).thenReturn(null);
@@ -542,8 +617,8 @@ public class LoginActionTest {
     when(securityUtil.calculateMac(anyMap(), anyString(), any(MacAlgorithm.class))).thenReturn("validMACstring");
     when(securityUtil.timestampIsValid(anyLong(), anyInt())).thenReturn(true);
 
-    Course course = new Course();
-    course.setId(new DummyId(Course.DATA_TYPE, "_1_1"));
+    Course course = mock(Course.class);
+    when(course.getId()).thenReturn(new DummyId(Course.DATA_TYPE, "_1_1"));
     User user = new User();
     user.setStudentId("wfuller");
     when(courseDbLoader.loadByCourseId("ITB101")).thenReturn(course);

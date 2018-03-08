@@ -1,5 +1,4 @@
 /*
- * Copyright (c) 2014 Swinburne University of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +31,7 @@ import blackboard.persist.user.UserDbLoader;
 import blackboard.platform.authentication.*;
 import blackboard.platform.authentication.log.AuthenticationLogger;
 import blackboard.platform.session.BbSession;
+import blackboard.platform.ultra.*;
 import net.sourceforge.stripes.action.*;
 import net.sourceforge.stripes.integration.spring.SpringBean;
 import net.sourceforge.stripes.validation.Validate;
@@ -40,6 +40,7 @@ import org.oscelot.bb.auth.autosignon.api.SecurityUtil;
 import org.oscelot.bb.auth.autosignon.provider.AutosignonProviderSettings;
 import org.oscelot.bb.auth.autosignon.service.AuthProviderService;
 import org.oscelot.bb.auth.autosignon.service.AutosignonSettingsService;
+import org.oscelot.bb.auth.autosignon.service.UltraUiService;
 import org.oscelot.bb.stripes.BlackboardActionBeanContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +72,7 @@ public class LoginAction implements ActionBean {
   private BlackboardActionBeanContext context;
   private CourseDbLoader courseDbLoader;
   private UserDbLoader userDbLoader;
+  private UltraUiService ultraUiService;
   private AuthenticationLogger authLogger;
   private AuthenticationManager authManager;
   private AuthProviderService apService;
@@ -129,7 +131,7 @@ public class LoginAction implements ActionBean {
       return new ForwardResolution("/WEB-INF/jsp/autherror.jsp");
     }
     addDebugMessage("courseId: "+courseId+"<br>userId: "+userId+"<br>mac: "+mac+
-        "<br>forward: "+forward+"<br>extra params: "+extraParamNames+"<br>timestamp: "+timestamp);
+            "<br>forward: "+forward+"<br>extra params: "+extraParamNames+"<br>timestamp: "+timestamp);
 
     Map<String, String> parametersToHash = new HashMap<>();
     parametersToHash.put(settings.getUserIdParamName(), parameters.get(settings.getUserIdParamName()));
@@ -140,7 +142,7 @@ public class LoginAction implements ActionBean {
       }
     }
     addDebugMessage("String used to create Hash on server: <b>" + createStringForHashing(parametersToHash) + "&lt;secret key&gt;</b>" +
-        " (<i>Parameters must be sorted by parameter name. Don't include &lt;secret key&gt; if you're using a HMAC hash algorithm.</i>)");
+            " (<i>Parameters must be sorted by parameter name. Don't include &lt;secret key&gt; if you're using a HMAC hash algorithm.</i>)");
 
     for (String key : parametersToHash.keySet()) {
       logger.debug("Param: " + key + " = \"" + parametersToHash.get(key) + "\"");
@@ -148,7 +150,7 @@ public class LoginAction implements ActionBean {
 
     logger.debug("Calculating the Authentication MAC.");
     String calculatedMac = securityUtil.calculateMac(parametersToHash,
-        secret, MacAlgorithm.valueOf(settings.getMacAlgorithm()));
+            secret, MacAlgorithm.valueOf(settings.getMacAlgorithm()));
 
     logger.debug("Server MAC: " + calculatedMac + " Client MAC: " + mac);
     addDebugMessage("Server MAC: " + calculatedMac + " <br>Client MAC: " + mac);
@@ -157,7 +159,7 @@ public class LoginAction implements ActionBean {
       addDebugMessage("Invalid MAC");
 
       AuthenticationEvent event = apService.buildAuthenticationEvent(EventType.FailedLogin_Password,
-          userId, "Invalid MAC", ap, context.getBlackboardContext());
+              userId, "Invalid MAC", ap, context.getBlackboardContext());
       authLogger.logAuthenticationEvent(event);
       return new ForwardResolution("/WEB-INF/jsp/autherror.jsp");
     }
@@ -166,10 +168,10 @@ public class LoginAction implements ActionBean {
       logger.debug("Invalid Timestamp.");
       SimpleDateFormat sdf = new SimpleDateFormat("dd/MMM/yyyy hh:mm:ss.SSS");
       addDebugMessage("Invalid Timestamp. The timestamp you specified is: "+sdf.format(new Date(timestamp))+"<br>" +
-          "It should be "+settings.getTimestampDelta()+" milliseconds either side of "+sdf.format(new Date()));
+              "It should be "+settings.getTimestampDelta()+" milliseconds either side of "+sdf.format(new Date()));
 
       AuthenticationEvent event = apService.buildAuthenticationEvent(EventType.FailedLogin_Password,
-          userId, "Invalid Timestamp", ap, context.getBlackboardContext());
+              userId, "Invalid Timestamp", ap, context.getBlackboardContext());
       authLogger.logAuthenticationEvent(event);
 
       return new ForwardResolution("/WEB-INF/jsp/autherror.jsp");
@@ -190,13 +192,35 @@ public class LoginAction implements ActionBean {
     sessionManager.attachUserToSession(user, ap, session, "Logged in from Autosignon." ,context.getRequest());
     addDebugMessage("User <b>"+userId+"</b> Authenticated Successfully.");
 
+    /* updating for Ultra support
+     *	Ultra uses a different URL syntax than Original so
+     *	if the system is running Ultra we need to use the Ultra courseLauncherURL:
+     *		Original Course (Ultra not enabled): "/webapps/blackboard/execute/modulepage/view?course_id="
+     *		Ultra Course (Ultra enabled): "/ultra/courses/<cid>/outline"
+     *		Original Course (Ultra enabled): "/ultra/courses/<cid>/cl/outline"
+     *	thus we need to create three different URLs
+     *  This block is updated to add support for Ultra enabled environments and
+     *	for Classic courses in Ultra enabled environments while maintaining support for
+     *	hosted and SaaS environments which have not enabled Ultra
+     *  additionally, dropping the user at the courses page in ultra requires a specific URL
+     */
+
+    boolean ultraIsEnabled = ultraUiService.isUltraUiEnabled();
+    String ultraStatus = "";
+    RedirectResolution rr;
+
     if (courseId == null || courseId.trim().isEmpty()) {
       addDebugMessage("No courseId provided. Would redirect to Homepage.");
       logger.info("No courseId provided. Redirecting to Homepage.");
       if (debugMode) {
         return new ForwardResolution(DEBUG_PAGE);
       }
-      return new RedirectResolution("/", false);
+      if (ultraIsEnabled) {
+        rr = new RedirectResolution("/ultra/course", false);
+      } else {
+        rr = new RedirectResolution("/", false);
+      }
+      return rr;
     }
 
     logger.debug("Attempting to load Course.");
@@ -209,7 +233,12 @@ public class LoginAction implements ActionBean {
       if (debugMode) {
         return new ForwardResolution(DEBUG_PAGE);
       }
-      return new RedirectResolution("/", false);
+      if (ultraIsEnabled) {
+        rr = new RedirectResolution("/ultra/course", false);
+      } else {
+        rr = new RedirectResolution("/", false);
+      }
+      return rr;
     }
 
     boolean courseAvailable = apService.userCanAccessCourse(course, user);
@@ -220,16 +249,47 @@ public class LoginAction implements ActionBean {
       if (debugMode) {
         return new ForwardResolution(DEBUG_PAGE);
       }
-      return new RedirectResolution("/", false);
+      if (ultraIsEnabled) {
+        rr = new RedirectResolution("/ultra/course", false);
+      } else {
+        rr = new RedirectResolution("/", false);
+      }
+      return rr;
     }
 
     logger.debug("Redirecting to Course.");
-    String courseLauncherUrl = "/webapps/portal/frameset.jsp?url=%2Fwebapps%2Fblackboard%2Fexecute%2Flauncher%3Ftype%3DCourse%26id%3D";
-    addDebugMessage("User can access course. Would redirect to course at <a href='"+courseLauncherUrl+"'>"+courseLauncherUrl+"</a>.");
+    String courseLauncherUrl;
+    /*	addDebugMessage("User can access course. Would redirect to course at <a href='"+courseLauncherUrl+"'>"+courseLauncherUrl+"</a>.");
+     *	if (debugMode) {
+     *	return new ForwardResolution(DEBUG_PAGE);
+     *	}
+     *	return new RedirectResolution(courseLauncherUrl + course.getId().toExternalString(), false);
+     */
+
+    if (ultraIsEnabled) {
+
+      if ( course.getUltraStatus().isUltra() ) {
+        // 'tis an ultra course
+        courseLauncherUrl = "/ultra/courses/" + course.getId().toExternalString()+"/outline";
+        rr = new RedirectResolution(courseLauncherUrl, false);
+      } else {
+        // 'tis a classic course
+        courseLauncherUrl = "/ultra/courses/" + course.getId().toExternalString()+"/cl/outline";
+        rr = new RedirectResolution(courseLauncherUrl, false);
+      }
+
+    } else { // not ultra enabled
+      courseLauncherUrl = "/webapps/portal/frameset.jsp?url=%2Fwebapps%2Fblackboard%2Fexecute%2Flauncher%3Ftype%3DCourse%26id%3D" + course.getId().toExternalString();
+      rr = new RedirectResolution(courseLauncherUrl, false);
+    }
+
+    addDebugMessage("User can access course. Would redirect to course at <a href='" + courseLauncherUrl + "'>" + courseLauncherUrl + "</a>.");
+
     if (debugMode) {
       return new ForwardResolution(DEBUG_PAGE);
     }
-    return new RedirectResolution(courseLauncherUrl + course.getId().toExternalString(), false);
+
+    return rr;
   }
 
 
@@ -347,6 +407,11 @@ public class LoginAction implements ActionBean {
   @SpringBean
   public void injectSessionManager(SessionManager sessionManager) {
     this.sessionManager = sessionManager;
+  }
+
+  @SpringBean
+  public void injectUltraUiService(UltraUiService ultraUiService) {
+    this.ultraUiService = ultraUiService;
   }
 
 

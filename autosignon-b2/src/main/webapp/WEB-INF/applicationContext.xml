@@ -66,6 +66,14 @@
           factory-bean="bbFactory"
           factory-method="getSessionManager"/>
 
+    <bean id="ultraUiManager"
+          factory-bean="bbFactory"
+          factory-method="getUltraUiManager"/>
+
+    <bean id="ultraUiService" class="org.oscelot.bb.auth.autosignon.service.UltraUiService">
+        <property name="ultraUiManager" ref="ultraUiManager"/>
+    </bean>
+
     <bean id="authenticationLogger"
           factory-bean="bbFactory"
           factory-method="getAuthenticationLogger"/>
