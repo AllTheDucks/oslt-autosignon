@@ -7,7 +7,9 @@ by Blackboard Global Services, and made available on Github.
 The original AutoSignOn Authentication Provider was contributed to the community by Swinburne University, and is now maintained by 
 [All the Ducks](https://www.alltheducks.com/) Pty Ltd.
 
-This version 3.0.0 of the Authentication Provider has been updated for use with Ultra Courses as delivered via Blackboard Learn SaaS. This version allows the AutoSignOn authentication provider to fully support both hosted and SaaS environments.
+## Version Notes
+### Version 3.0.0
+This version of the Authentication Provider has been updated for use with Ultra Courses as delivered via Blackboard Learn SaaS. This version allows the AutoSignOn authentication provider to fully support both hosted and SaaS environments.
 
 Specifically:
 AutoSignOn has been updated for Ultra support. Ultra uses a different URL syntax than Classic so in addition to supporting the non-Ultra "/webapps/" URL scheme, if the system is running Ultra we need to use the Ultra URL scheme:
