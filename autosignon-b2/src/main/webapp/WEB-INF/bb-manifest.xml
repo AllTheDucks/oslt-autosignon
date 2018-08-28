@@ -36,7 +36,7 @@
 
         <version value="3.0.0" />
         <requires>
-            <bbversion value="9.1.82223.0" />
+            <bbversion value="9.1.201410" />
         </requires>
 
         <vendor>
